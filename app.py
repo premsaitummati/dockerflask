@@ -1,35 +1,14 @@
 from flask import Flask
-from flask import request
+from redis import Redis
 
 app = Flask(__name__)
+redis = Redis(host='redis', port=6379)
 
-
-def fahrenheit_from(celsius):
-    """Convert Celsius to Fahrenheit degrees."""
-    try:
-        fahrenheit = float(celsius) * 9 / 5 + 32
-        fahrenheit = round(fahrenheit, 3)  # Round to three decimal places
-        return str(fahrenheit)
-    except ValueError:
-        return "invalid input"
-
-
-@app.route("/")
-def index():
-    celsius = request.args.get("celsius", "")
-    if celsius:
-        fahrenheit = fahrenheit_from(celsius)
-    else:
-        fahrenheit = ""
-    return (
-        """<form action="" method="get">
-                Celsius temperature: <input type="text" name="celsius">
-                <input type="submit" value="Convert to Fahrenheit">
-            </form>"""
-        + "Fahrenheit: "
-        + fahrenheit
-    )
+@app.route('/')
+def hello():
+    redis.incr('hits')
+    return 'This Compose/Flask demo has been viewed %s time(s).' % redis.get('hits')
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=80, debug=True)
+    app.run(host="0.0.0.0", debug=True)
